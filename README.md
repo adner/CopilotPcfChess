@@ -86,14 +86,22 @@ App), the `pac` CLI, and the M365 Agents Toolkit (ATK).
    (bump the control version), `npm install && npm run build`, `pac pcf push --publisher-prefix bridge`,
    then bind it as a table's grid control with `npm run bind -- …` (see the `pcf-develop-deploy` skill —
    the classic picker won't list a dataset PCF, so this is scripted). Configure the control:
-   `serverBaseUrl` = the tunnel base, `stateKey` = your `STATE_KEY`, `agentId` = the agent's gptId
-   (or paste it later in the panel's **Agent settings** section), `autoRefreshSeconds` = `30`.
+   `serverBaseUrl` = the tunnel base, `stateKey` = your `STATE_KEY`, `autoRefreshSeconds` = `30`. Leave
+   `agentId` for now — you set it after provisioning the agent (next step).
 3. **Agent.** In `declarative-agent/ExperimentAgent/`, point the `RemoteMCPServer` url in
    `appPackage/ai-plugin.json` (and `.vscode/mcp.json`) at `<tunnel>/mcp`, then provision + publish with
    ATK (`teamsapp provision`, then publish). Provisioning repopulates the blanked IDs in `env/.env.dev`
    for your tenant. If you change tools, re-run the three-file tool-enumeration sync (see the
    `declarative-agent-sync` skill).
-4. **Play.** Open the PCF page, drag/click a White move → the Copilot pane shows *Copilot Chess* reading
+4. **Set the gptId on the board (required).** The PCF must know *which* declarative agent to send your
+   moves to — this is the agent's **gptId**, which is the `M365_TITLE_ID` value ATK writes into
+   `declarative-agent/ExperimentAgent/env/.env.dev` on provision (a `T_<guid>` string). Copy it, then on
+   the PCF page **expand the collapsed "⚙ Agent settings" section at the bottom of the component** and
+   paste it into the **gptId** field. Without this the panel saves your move but has no agent to hand off
+   to, and the status line tells you to open Agent settings. (You can instead bake it into the control's
+   `agentId` bind property, but the Agent settings pane is the quick, no-rebind way — set it once and
+   collapse the section again.)
+5. **Play.** Open the PCF page, drag/click a White move → the Copilot pane shows *Copilot Chess* reading
    the board and replying as Black with a rendered board card and its reasoning → the PCF repaints and
    shows **"Copilot moved — your turn."** Captured pieces accrue in the panel beside the board.
 
@@ -118,8 +126,13 @@ suppress the per-call approval prompt. `chess_read_board` is genuinely read-only
 every Black move (documented in `mcp-server/server.ts`). Don't copy that shortcut to a tool with real
 side effects.
 
-## Credits
+## Credits & licenses
 
-Chess piece artwork is the **Cburnett** set from [lichess-org/lila](https://github.com/lichess-org/lila)
-(CC BY-SA 3.0), inlined as SVG. Game logic is [chess.js](https://github.com/jhlywa/chess.js). Built from
-the [CopilotPcf_Template](https://github.com/adner/CopilotPcf_Template) starter.
+- Chess piece artwork: the **Cburnett** set by **Colin M.L. Burnett**, from
+  [lichess-org/lila](https://github.com/lichess-org/lila/tree/master/public/piece/cburnett) (originally
+  Wikimedia Commons). Multi-licensed by the author (GFDL 1.2+ / CC BY-SA 3.0 / BSD 3-Clause / GPLv2+);
+  redistributed here under **BSD 3-Clause**.
+- Game logic: [chess.js](https://github.com/jhlywa/chess.js) by Jeff Hlywa (**BSD 2-Clause**).
+
+Full attribution and license texts for both are in [`THIRD-PARTY-NOTICES.md`](./THIRD-PARTY-NOTICES.md).
+Built from the [CopilotPcf_Template](https://github.com/adner/CopilotPcf_Template) starter.

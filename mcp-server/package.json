@@ -2,6 +2,7 @@
   "name": "bridge-template-mcp-server",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "description": "Template MCP (Apps) server for the Xrm.Copilot ↔ PCF bridge — plumbing + a smoke_test tool.",
   "scripts": {

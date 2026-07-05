@@ -1,6 +1,7 @@
 {
   "name": "pcf-project",
   "version": "1.0.0",
+  "license": "MIT",
   "description": "Project containing your PowerApps Component Framework (PCF) control.",
   "scripts": {
     "build": "pcf-scripts build",
