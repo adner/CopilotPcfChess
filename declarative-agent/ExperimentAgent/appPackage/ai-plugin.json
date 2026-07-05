@@ -1,0 +1,36 @@
+{
+    "$schema": "https://developer.microsoft.com/json-schemas/copilot/plugin/v2.4/schema.json",
+    "schema_version": "v2.4",
+    "name_for_human": "Copilot Chess",
+    "description_for_human": "Play chess against M365 Copilot via the MCP bridge.",
+    "contact_email": "publisher-email@example.com",
+    "namespace": "copilotchess",
+    "functions": [
+        {
+            "name": "chess_read_board",
+            "description": "Returns the current chess position as Black: PGN history, the legal moves in SAN, both sides' pieces, and the FEN. Call before every move; also reports White's turn or game over."
+        },
+        {
+            "name": "chess_make_move",
+            "description": "Plays Black's move (SAN or UCI) and updates the human's board. Refused if it is not Black's turn or the game is over; an illegal move returns the legal-move list to retry from."
+        }
+    ],
+    "runtimes": [
+        {
+            "type": "RemoteMCPServer",
+            "spec": {
+                "url": "https://<your-tunnel>-3101.<region>.devtunnels.ms/mcp",
+                "mcp_tool_description": {
+                    "file": "mcp-tools.json"
+                }
+            },
+            "run_for_functions": [
+                "chess_read_board",
+                "chess_make_move"
+            ],
+            "auth": {
+                "type": "None"
+            }
+        }
+    ]
+}

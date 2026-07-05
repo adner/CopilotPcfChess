@@ -1,0 +1,33 @@
+# dependencies
+node_modules/
+
+# secrets & local state (never commit)
+.env
+**/.env
+mcp-server/state.json
+
+# build outputs
+mcp-server/dist/
+mcp-server/logs/
+
+# PCF build artifacts
+pcf-control/out/
+pcf-control/obj/
+pcf-control/bin/
+pcf-control/.vs/
+pcf-control/generated/
+
+# misc
+*.log
+.DS_Store
+
+# The ATK declarative agent (declarative-agent/) is committed as part of this public sample. Its own
+# nested .gitignore keeps build output + per-user secrets out; the rules below are belt-and-suspenders
+# so secrets stay ignored even if that nested file is ever removed. Note: env/.env.dev IS committed by
+# ATK convention — its provisioned IDs are sanitized to blanks here and repopulate on `provision`.
+declarative-agent/**/env/.env.*.user
+declarative-agent/**/env/.env.local
+declarative-agent/**/appPackage/build/
+declarative-agent/**/appPackage/.generated/
+declarative-agent/**/.localConfigs
+

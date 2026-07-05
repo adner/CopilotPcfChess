@@ -1,0 +1,19 @@
+{
+    "$schema": "https://developer.microsoft.com/json-schemas/copilot/declarative-agent/v1.7/schema.json",
+    "version": "v1.7",
+    "name": "Copilot Chess",
+    "description": "Plays chess as Black against you (White) — moves are made on a Power Apps board via the MCP bridge.",
+    "instructions": "$[file('instruction.txt')]",
+    "conversation_starters": [
+        {
+			"title": "Your move",
+			"text": "It's your move — read the board and play."
+		}
+    ],
+    "actions": [
+        {
+            "id": "action_1",
+            "file": "ai-plugin.json"
+        }
+    ]
+}

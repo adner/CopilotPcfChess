@@ -1,0 +1,310 @@
+.bsp-root {
+  --fg: #1c2431;
+  --muted: #6b7280;
+  --bg: #f5f7fa;
+  --panel: #ffffff;
+  --accent: #3b82f6;
+  --border: rgba(20, 30, 50, 0.12);
+  --sq-light: #eadfce;
+  --sq-dark: #9c7a55;
+  --sq-sel: #f6d66b;
+  --sq-last: rgba(246, 214, 107, 0.55);
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  color: var(--fg);
+  background: var(--bg);
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 100%;
+  padding: 18px 20px 24px;
+  overflow: auto;
+}
+.bsp-root *,
+.bsp-root *::before,
+.bsp-root *::after {
+  box-sizing: border-box;
+}
+
+.bsp-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+.bsp-sub {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 4px 0 14px;
+  max-width: 640px;
+}
+
+.bsp-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.bsp-input {
+  flex: 1 1 320px;
+  min-width: 220px;
+  font: inherit;
+  font-size: 13px;
+  padding: 8px 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--fg);
+}
+.bsp-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.bsp-btn {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--fg);
+  border-radius: 8px;
+  padding: 8px 14px;
+  transition: 0.15s;
+}
+.bsp-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.bsp-btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.bsp-btn--primary:hover {
+  filter: brightness(1.05);
+  color: #fff;
+}
+
+.bsp-status {
+  min-height: 22px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  margin: 4px 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.bsp-status--ok {
+  color: #0f9d58;
+}
+.bsp-status--err {
+  color: #d9483b;
+}
+.bsp-status--busy {
+  color: var(--accent);
+}
+.bsp-status--busy::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: bsp-spin 0.6s linear infinite;
+}
+@keyframes bsp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- board + captured panel --- */
+.bsp-play {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 18px;
+}
+.bsp-board {
+  width: min(560px, 92vw);
+  flex: 0 0 auto;
+  aspect-ratio: 1 / 1;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 6px 24px rgba(20, 30, 50, 0.12);
+  user-select: none;
+}
+.bsp-sq {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.bsp-sq--light {
+  background: var(--sq-light);
+}
+.bsp-sq--dark {
+  background: var(--sq-dark);
+}
+.bsp-sq--last::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--sq-last);
+  pointer-events: none;
+}
+.bsp-sq--sel {
+  box-shadow: inset 0 0 0 3px var(--sq-sel);
+}
+
+.bsp-piece {
+  position: relative;
+  width: 90%;
+  height: 90%;
+  pointer-events: none;
+  z-index: 2;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25));
+}
+.bsp-piece svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.bsp-marker {
+  position: absolute;
+  width: 30%;
+  height: 30%;
+  border-radius: 50%;
+  background: rgba(20, 30, 50, 0.32);
+  pointer-events: none;
+  z-index: 1;
+}
+.bsp-marker--cap {
+  width: 86%;
+  height: 86%;
+  background: transparent;
+  border: 5px solid rgba(20, 30, 50, 0.32);
+}
+
+.bsp-coord {
+  position: absolute;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+  opacity: 0.7;
+  z-index: 3;
+}
+.bsp-coord--file {
+  right: 3px;
+  bottom: 2px;
+}
+.bsp-coord--rank {
+  left: 3px;
+  top: 2px;
+}
+/* Contrast the coordinate against its square (light squares -> dark label, dark squares -> light). */
+.bsp-sq--light .bsp-coord {
+  color: var(--sq-dark);
+}
+.bsp-sq--dark .bsp-coord {
+  color: var(--sq-light);
+}
+
+.bsp-info {
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg);
+  min-height: 20px;
+}
+
+/* --- captured pieces (right of the board) --- */
+.bsp-captured {
+  flex: 1 1 120px;
+  min-width: 120px;
+  max-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 2px;
+}
+.bsp-cap-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.bsp-cap-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.bsp-cap-pts {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--fg);
+  background: var(--border);
+  border-radius: 6px;
+  padding: 1px 6px;
+}
+.bsp-cap-icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px;
+  min-height: 24px;
+}
+.bsp-cap-piece {
+  width: 24px;
+  height: 24px;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.2));
+}
+.bsp-cap-piece svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* --- agent settings (collapsible, bottom of panel) --- */
+.bsp-settings {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  max-width: 640px;
+}
+.bsp-settings > summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  list-style: revert;
+  user-select: none;
+}
+.bsp-settings > summary:hover {
+  color: var(--accent);
+}
+.bsp-label {
+  display: block;
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.bsp-label .bsp-input {
+  display: block;
+  margin-top: 5px;
+  width: 100%;
+  max-width: 420px;
+}

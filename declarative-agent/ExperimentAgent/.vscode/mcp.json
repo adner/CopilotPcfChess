@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "chess-mcp": {
+      "type": "http",
+      "url": "https://<your-tunnel>-3101.<region>.devtunnels.ms/mcp"
+    }
+  }
+}

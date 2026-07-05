@@ -1,0 +1,52 @@
+{
+    "tools": [
+        {
+            "name": "chess_read_board",
+            "title": "Read the chess board",
+            "description": "Returns the current chess position as Black: the PGN move history, the full list of legal moves in SAN, both sides' pieces, and the FEN. ALWAYS call this before making a move, and pick one move from the legal list. Also reports when it is White's turn (the human's move) or the game is over.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "$schema": "http://json-schema.org/draft-07/schema#"
+            },
+            "annotations": {
+                "readOnlyHint": true,
+                "openWorldHint": false
+            },
+            "execution": {
+                "taskSupport": "forbidden"
+            }
+        },
+        {
+            "name": "chess_make_move",
+            "title": "Make a chess move (Black)",
+            "description": "Plays Black's move and updates the board the human sees. `move` is one move in SAN (e.g. \"Nf3\", \"exd5\", \"O-O\") or UCI (e.g. \"e7e5\"); it must be a legal move for Black. If it is not Black's turn or the game is over, the move is refused. On an illegal move the error lists the legal moves — retry with one of them.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "move": {
+                        "type": "string",
+                        "description": "Black's move in SAN or UCI, e.g. \"Nf3\" or \"g8f6\"."
+                    }
+                },
+                "required": [
+                    "move"
+                ],
+                "$schema": "http://json-schema.org/draft-07/schema#"
+            },
+            "annotations": {
+                "readOnlyHint": true,
+                "openWorldHint": false
+            },
+            "execution": {
+                "taskSupport": "forbidden"
+            },
+            "_meta": {
+                "ui": {
+                    "resourceUri": "ui://bridge/viewer.html"
+                },
+                "ui/resourceUri": "ui://bridge/viewer.html"
+            }
+        }
+    ]
+}

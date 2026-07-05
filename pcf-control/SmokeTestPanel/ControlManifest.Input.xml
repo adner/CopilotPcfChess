@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Authoring rule (Dataverse import validates strictly; the webpack build does NOT catch these):
+     attribute values must be valid XML — escape < > & as &lt; &gt; &amp; — AND the *-key attributes
+     (display-name-key / description-key) must contain NO apostrophes: Dataverse's 'noAposStringType'
+     rejects them and `pac pcf push` fails at import. See the pcf-develop-deploy skill. -->
+<manifest>
+  <control namespace="Bridge" constructor="SmokeTestPanel" version="0.0.6"
+           display-name-key="Copilot Chess Board"
+           description-key="Play chess against M365 Copilot: you are White, Copilot (Black) replies via the Xrm.Copilot ↔ MCP bridge."
+           control-type="standard">
+    <!-- BUMP this version before EVERY `pac pcf push` or UCI serves the stale bundle (pcf-develop-deploy skill). -->
+
+    <!-- Premium: this control calls the MCP/web server over HTTPS. The <domain> MUST equal the
+         server's PUBLIC_BASE_URL and the serverBaseUrl property below. Changing it = edit here +
+         version bump + push. Replace with your HTTPS devtunnel base. -->
+    <external-service-usage enabled="true">
+      <domain>https://YOUR-TUNNEL-3101.euw.devtunnels.ms</domain>
+    </external-service-usage>
+
+    <!-- Input properties, configured on the control at bind time (see bind-grid.mjs). -->
+    <property name="serverBaseUrl" display-name-key="Server Base URL"
+              description-key="MCP/web server HTTPS base, e.g. https://xxxx-3101.euw.devtunnels.ms (= PUBLIC_BASE_URL)."
+              of-type="SingleLine.Text" usage="input" required="true" />
+    <property name="agentId" display-name-key="Agent Id (gptId)"
+              description-key="gptId of the M365 Copilot declarative agent (M365_TITLE_ID / T_&lt;guid&gt;, NOT TEAMS_APP_ID). Prefills the panel; editable there for smoke testing."
+              of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="stateKey" display-name-key="State Key"
+              description-key="Capability token for GET /state (must equal the server STATE_KEY)."
+              of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="autoRefreshSeconds" display-name-key="Auto-refresh Seconds"
+              description-key="Poll /state every N seconds. 0 or blank = off (nudge + manual only)."
+              of-type="Whole.None" usage="input" required="false" />
+
+    <!-- Dataset anchor: only there to host the control full-page. Records are ignored. -->
+    <data-set name="bridgeGrid" display-name-key="Bridge Anchor"
+              description-key="Dataset anchor used to host the control full-page. Records are ignored." />
+
+    <resources>
+      <code path="index.ts" order="1" />
+      <css path="css/SmokeTestPanel.css" order="1" />
+    </resources>
+
+    <feature-usage>
+      <uses-feature name="Utility" required="true" />
+    </feature-usage>
+  </control>
+</manifest>
