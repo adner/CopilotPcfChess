@@ -4,6 +4,28 @@ Guidance for Claude Code working in this repo. **Authoring rule:** procedural kn
 `.claude/skills/`; always-true, load-bearing facts → this file; human narrative (diagrams, setup
 walkthrough) → `README.md`. Keep this file a map, not a manual.
 
+## THIS BRANCH: the Cowork self-play / Copilot Credits demo
+
+**`claude/cowork-chess-plugin-w5s77r` is a different use case than `main`.** Here the demo is a
+**Copilot Cowork plugin** (`cowork-plugin/`): Cowork plays a full chess game **against itself** (both
+sides) through the MCP server, so the user can measure the **Copilot Credits** a full game consumes.
+Consequences that override the `main`-demo facts below:
+
+- The MCP plane is **headless** — three plain-text tools: `chess_new_game`, `chess_make_move`
+  (any-side via `store.applyMoveForTurn`; response embeds the NEXT side's legal moves), and
+  `chess_read_board` (recovery only). No MCP-Apps cards, no viewer resource, no PCF nudge,
+  no `structuredContent`. Per-game telemetry (tool-call counts, start/end) is persisted with the game
+  and reported in the game-over summary for credit correlation.
+- **`npm run build` is NOT required before `npm run serve`** (the viewer is unhooked). New command:
+  `npm run package:cowork` (validates + zips `cowork-plugin/dist/cowork-chess-plugin.zip`).
+- **Critical coupling on this branch:** `PUBLIC_BASE_URL` (mcp-server/.env) == the plugin manifest's
+  `mcpServerUrl` base == the **anonymous-access** HTTPS devtunnel. Re-run `package:cowork` + re-upload
+  the zip whenever the tunnel changes.
+- The `declarative-agent-sync` skill does **NOT** apply — Cowork discovers tools dynamically via
+  `tools/list`; there is no mcp-tools.json to sync. The PCF control, viewer sources (`src/mcp-app.ts`,
+  `buildMoveCard`), web plane, and declarative agent stay in-tree but **unused**.
+- Human narrative (sideload steps, running the demo, reading the Credits report) → `cowork-plugin/README.md`.
+
 ## What this repo is
 
 A **starter template** for demos that show **bi-directional communication** between a model-driven
@@ -27,10 +49,11 @@ PCF**, which reconciles via `GET /game`. Full design + decisions live in **`copi
 
 ```bash
 npm install
-npm run probe chess   # host-free: reset+play, print the read report & nudge, write dist/probe-chess.html
-npm run build         # bundle the viewer to dist/mcp-app.html (REQUIRED before serve)
-npm run serve         # Streamable HTTP on :3101/mcp  (health: /health)
-npm run typecheck     # tsc on BOTH tsconfigs (server + DOM viewer)
+npm run probe chess     # host-free: scripted self-play to mate, asserts + prints reports & credit summary
+npm run serve           # Streamable HTTP on :3101/mcp  (health: /health) — no build step needed
+npm run package:cowork  # validate + zip the Cowork plugin package (cowork-plugin/dist/)
+npm run typecheck       # tsc on BOTH tsconfigs (server + DOM viewer)
+npm run build           # (main-demo leftover) bundle the viewer — NOT needed on this branch
 ```
 
 In `pcf-control/`: `npm install`, `npm run build`, `npm run bind -- …` (grid binding; see

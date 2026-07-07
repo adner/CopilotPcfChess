@@ -1,11 +1,14 @@
 /**
  * Singleton chess game — the authoritative source of truth for the whole demo, persisted to a JSON
- * file. The human plays White from the PCF (POST /move), Copilot plays Black via the chess_make_move
- * MCP tool; both funnel through applyMove(), which is the ONLY place the board mutates (single-writer
- * Node process → the two-caller race is a non-issue). chess.js does all legality/checkmate/draw work.
+ * file. On this branch Cowork plays BOTH sides via the chess_make_move MCP tool (applyMoveForTurn);
+ * the legacy web plane (POST /move) still funnels through applyMove("w", …). applyMove() is the ONLY
+ * place the board mutates (single-writer Node process → the two-caller race is a non-issue). chess.js
+ * does all legality/checkmate/draw work.
  *
  * Persistence stores the SAN history and replays it on load (NOT load(fen) — an FEN-only restore yields
  * an empty .pgn() and loses threefold-repetition tracking, both of which the read tool depends on).
+ * Per-game telemetry (tool-call counts + start/end timestamps) rides along in the same file so the
+ * game-over summary can be correlated with the Copilot Credits report.
  */
 import { Chess } from "chess.js";
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
@@ -36,13 +39,25 @@ export type MoveResult =
   // the current legal moves so the same-side caller can retry.
   | { ok: false; reason: "illegal" | "wrong-turn" | "game-over"; legal: string[] };
 
+/** Per-game counters for the credit-measurement demo — reset by newGame(), persisted with the game. */
+export interface Telemetry {
+  toolCalls: Record<string, number>; // keyed by tool name
+  startedAt: string; // ISO, set by newGame()
+  endedAt: string | null; // set by the game-ending applyMove
+}
+function freshTelemetry(): Telemetry {
+  return { toolCalls: {}, startedAt: new Date().toISOString(), endedAt: null };
+}
+
 let chess = new Chess();
 let humanColor: Color = "w";
+let telemetry: Telemetry = freshTelemetry();
 
 // --- persistence ------------------------------------------------------------
 interface Persisted {
   history: string[];
   humanColor: Color;
+  telemetry?: Telemetry; // absent in pre-telemetry state files — defaults on load
 }
 
 function load(): void {
@@ -53,16 +68,18 @@ function load(): void {
     for (const san of parsed.history ?? []) c.move(san); // replay → rebuilds full state + repetition
     chess = c;
     humanColor = parsed.humanColor === "b" ? "b" : "w";
+    telemetry = parsed.telemetry?.toolCalls ? parsed.telemetry : freshTelemetry();
   } catch {
     // Corrupt / unreplayable file — start a fresh game rather than crash.
     chess = new Chess();
     humanColor = "w";
+    telemetry = freshTelemetry();
   }
 }
 function save(): void {
   const dir = dirname(config.stateFile);
   if (dir && dir !== ".") mkdirSync(dir, { recursive: true });
-  const data: Persisted = { history: chess.history(), humanColor };
+  const data: Persisted = { history: chess.history(), humanColor, telemetry };
   writeFileSync(config.stateFile, JSON.stringify(data, null, 2));
 }
 load();
@@ -111,8 +128,19 @@ function normalize(move: MoveInput): MoveInput {
 export function newGame(): GameSnapshot {
   chess = new Chess();
   humanColor = "w";
+  telemetry = freshTelemetry();
   save();
   return snapshot();
+}
+
+/** Count one MCP tool invocation against the current game (persisted for the game-over summary). */
+export function bumpToolCall(tool: string): void {
+  telemetry.toolCalls[tool] = (telemetry.toolCalls[tool] ?? 0) + 1;
+  save();
+}
+
+export function getTelemetry(): Telemetry {
+  return { ...telemetry, toolCalls: { ...telemetry.toolCalls } };
 }
 
 export function getGame(): GameSnapshot {
@@ -137,8 +165,14 @@ export function applyMove(expected: Color, move: MoveInput): MoveResult {
   } catch {
     return { ok: false, reason: "illegal", legal: chess.moves() };
   }
+  if (chess.isGameOver() && !telemetry.endedAt) telemetry.endedAt = new Date().toISOString();
   save();
   return { ok: true, game: snapshot() };
+}
+
+/** Self-play: apply a move for whichever side is to move (Cowork plays both sides). */
+export function applyMoveForTurn(move: MoveInput): MoveResult {
+  return applyMove(chess.turn(), move);
 }
 
 /** 8×8 board array (rank 8 first), as chess.js .board() returns it — for the pane-card renderer. */

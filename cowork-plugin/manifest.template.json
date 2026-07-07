@@ -1,0 +1,42 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/vDevPreview/MicrosoftTeams.schema.json",
+  "manifestVersion": "devPreview",
+  "version": "1.0.0",
+  "id": "4839a545-2285-4131-b320-3dbd06e4e76e",
+  "packageName": "com.example.coworkchess",
+  "developer": {
+    "name": "Chess Credits Demo",
+    "websiteUrl": "https://github.com/adner/CopilotPcfChess",
+    "privacyUrl": "https://github.com/adner/CopilotPcfChess",
+    "termsOfUseUrl": "https://github.com/adner/CopilotPcfChess"
+  },
+  "name": {
+    "short": "Chess Credits Demo",
+    "full": "Chess self-play — Copilot Credits measurement"
+  },
+  "description": {
+    "short": "Cowork plays a full chess game against itself via MCP.",
+    "full": "Measures how many Copilot Credits a full chess game consumes. Cowork alternates both sides using the chess MCP server (the single source of truth for the position, in PGN) until checkmate or draw, then reports the final PGN and a tool-call summary to correlate with the Copilot Credits report."
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "accentColor": "#9C7A55",
+  "agentSkills": [
+    { "folder": "./skills/play-chess" }
+  ],
+  "agentConnectors": [
+    {
+      "id": "chessMcp",
+      "displayName": "Chess MCP server",
+      "description": "Authoritative chess game state (chess.js, PGN). Tools: chess_new_game, chess_make_move, chess_read_board.",
+      "toolSource": {
+        "remoteMcpServer": {
+          "mcpServerUrl": "{{PUBLIC_BASE_URL}}/mcp",
+          "authorization": { "type": "None" }
+        }
+      }
+    }
+  ]
+}

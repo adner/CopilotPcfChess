@@ -9,6 +9,7 @@ mcp-server/state.json
 # build outputs
 mcp-server/dist/
 mcp-server/logs/
+cowork-plugin/dist/
 
 # PCF build artifacts
 pcf-control/out/
