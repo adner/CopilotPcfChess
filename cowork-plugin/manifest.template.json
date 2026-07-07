@@ -1,9 +1,8 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/teams/vDevPreview/MicrosoftTeams.schema.json",
-  "manifestVersion": "devPreview",
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.28/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.28",
   "version": "1.0.0",
   "id": "4839a545-2285-4131-b320-3dbd06e4e76e",
-  "packageName": "com.example.coworkchess",
   "developer": {
     "name": "Chess Credits Demo",
     "websiteUrl": "https://github.com/adner/CopilotPcfChess",
@@ -34,6 +33,7 @@
       "toolSource": {
         "remoteMcpServer": {
           "mcpServerUrl": "{{PUBLIC_BASE_URL}}/mcp",
+          "mcpToolDescription": { "file": "toolDescription.json" },
           "authorization": { "type": "None" }
         }
       }

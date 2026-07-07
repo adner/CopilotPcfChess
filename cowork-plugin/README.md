@@ -7,9 +7,10 @@ The point of the demo is to measure how many **Copilot Credits** one complete ga
 
 ## How it works
 
-- The plugin package (a Teams-style app package zip) declares:
-  - an **agent connector** → the MCP server at `PUBLIC_BASE_URL/mcp` (auth: None). Cowork discovers the
-    tools dynamically via `tools/list` — no tool manifest to maintain.
+- The plugin package (a Teams-style app package zip, manifest **v1.28**) declares:
+  - an **agent connector** → the MCP server at `PUBLIC_BASE_URL/mcp` (auth: None). The v1.28 schema
+    requires a static tool declaration, so the connector points at **`toolDescription.json`** (which
+    mirrors the three server tools). Cowork also refreshes tools at runtime via `tools/list`.
   - an **agent skill** (`skills/play-chess/SKILL.md`) → the self-play loop: `chess_new_game` once, then
     `chess_make_move` per ply (each response embeds the next side's legal moves, so no board-read
     between moves), stop at checkmate/draw and report the summary.
@@ -25,10 +26,15 @@ npm run package:cowork      # validates + writes cowork-plugin/dist/cowork-chess
 ```
 
 The script substitutes `PUBLIC_BASE_URL` from `mcp-server/.env` into the manifest, validates the
-package (required fields, icon sizes, skill frontmatter, and the manifest against its `$schema` — the
-schema is fetched live from developer.microsoft.com; pass `--schema <path|url>` to override, e.g.
-`npm run package:cowork -- --schema ./MicrosoftTeams.schema.json`), then zips it. Re-run + re-upload
-whenever your devtunnel URL changes.
+package (required fields, icon sizes, skill frontmatter, that `toolDescription.json` mirrors the
+server's tool names and every tool carries a safety annotation, and the manifest against its `$schema`
+— the v1.28 schema is fetched live from developer.microsoft.com; pass `--schema <path|url>` to
+override, e.g. `npm run package:cowork -- --schema ./MicrosoftTeams.schema.json`), then zips it.
+Re-run + re-upload whenever your devtunnel URL changes.
+
+> **Adding or renaming a server tool?** Edit `mcp-server/server.ts` **and** `cowork-plugin/toolDescription.json`
+> (and the `SERVER_TOOLS` list in `build.mjs`). The v1.28 manifest schema requires the static
+> `toolDescription.json`; `package:cowork` fails if the two drift.
 
 ## Run the demo
 
@@ -71,6 +77,9 @@ whenever your devtunnel URL changes.
 - **Schema errors like `/ must NOT have additional properties`**: the hosted devPreview schema copy you
   validated against predates the Cowork fields (`agentSkills`/`agentConnectors`). Get a current schema
   and pass it via `--schema`, or fall back to the structural checks.
-- **Upload rejected**: the zip must have `manifest.json`, `color.png` (192×192), `outline.png` (32×32)
-  at its root and the skill under `skills/play-chess/SKILL.md` — `npm run package:cowork` builds exactly
-  that layout; don't re-zip by hand from a folder (that nests everything one level down).
+- **Upload rejected**: the zip must have `manifest.json`, `color.png` (192×192), `outline.png` (32×32),
+  `toolDescription.json` at its root and the skill under `skills/play-chess/SKILL.md` —
+  `npm run package:cowork` builds exactly that layout; don't re-zip by hand from a folder (that nests
+  everything one level down). Common schema rejections: `manifestVersion` must be `1.28` (not
+  `devPreview`); `packageName` is not allowed at the root; `remoteMcpServer` must include
+  `mcpToolDescription`.

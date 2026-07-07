@@ -61,7 +61,7 @@ try {
 for (const key of ["manifestVersion", "version", "id", "developer", "name", "description", "icons", "accentColor"]) {
   check(manifest[key] !== undefined, `manifest is missing required field "${key}"`);
 }
-check(manifest.manifestVersion === "devPreview", 'manifestVersion must be "devPreview" (agentSkills/agentConnectors)');
+check(manifest.manifestVersion === "1.28", 'manifestVersion must be "1.28" (agentSkills/agentConnectors)');
 check(
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(manifest.id ?? ""),
   "manifest.id must be a GUID",
@@ -99,6 +99,38 @@ for (const s of manifest.agentSkills ?? []) {
     check(/^name:\s*\S/m.test(fm[1]), `${folder}/SKILL.md frontmatter is missing "name"`);
     check(/^description:\s*\S/m.test(fm[1]), `${folder}/SKILL.md frontmatter is missing "description"`);
   }
+}
+
+// --- 2a′. mcpToolDescription file(s) — required by the v1.28 schema; must mirror mcp-server/server.ts.
+// Keep this list in sync with the tools registered in server.ts (the only sync burden on this branch).
+const SERVER_TOOLS = ["chess_new_game", "chess_read_board", "chess_make_move"];
+const toolDescFiles = []; // relative paths to add to the zip
+for (const c of connectors) {
+  const rel = c.toolSource?.remoteMcpServer?.mcpToolDescription?.file;
+  if (!rel) continue; // schema requires it, so the schema check below will also catch a missing entry
+  toolDescFiles.push(rel);
+  let td;
+  try {
+    td = JSON.parse(readFileSync(resolve(HERE, rel), "utf-8"));
+  } catch (e) {
+    check(false, `connector "${c.id}": cannot read/parse mcpToolDescription file "${rel}" (${e.message})`);
+    continue;
+  }
+  const names = (td.tools ?? []).map((t) => t.name);
+  check(names.length > 0, `${rel}: no tools listed`);
+  for (const t of td.tools ?? []) {
+    check(!!t.name && !!t.inputSchema, `${rel}: tool "${t.name ?? "?"}" missing name/inputSchema`);
+    // Cowork treats a tool with NO safety annotation as destructive (confirmation every call).
+    const a = t.annotations ?? {};
+    check(
+      a.readOnlyHint !== undefined || a.destructiveHint !== undefined,
+      `${rel}: tool "${t.name}" has no readOnlyHint/destructiveHint (Cowork would prompt for consent every call)`,
+    );
+  }
+  const missing = SERVER_TOOLS.filter((n) => !names.includes(n));
+  const extra = names.filter((n) => !SERVER_TOOLS.includes(n));
+  check(missing.length === 0, `${rel}: missing tools vs server.ts: ${missing.join(", ")}`);
+  check(extra.length === 0, `${rel}: tools not in server.ts (drift): ${extra.join(", ")}`);
 }
 
 // --- 2b. JSON-schema validation against the manifest's $schema (live fetch or --schema override) ----
@@ -149,6 +181,7 @@ const zip = new AdmZip();
 zip.addFile("manifest.json", Buffer.from(manifestText, "utf-8"));
 zip.addLocalFile(resolve(HERE, "color.png"));
 zip.addLocalFile(resolve(HERE, "outline.png"));
+for (const rel of toolDescFiles) zip.addLocalFile(resolve(HERE, rel)); // e.g. toolDescription.json at root
 zip.addLocalFile(resolve(HERE, "skills", "play-chess", "SKILL.md"), "skills/play-chess");
 zip.writeZip(OUT_ZIP);
 

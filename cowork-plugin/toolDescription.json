@@ -1,0 +1,56 @@
+{
+  "_comment": "Static tool declaration required by the v1.28 manifest schema (remoteMcpServer.mcpToolDescription). MUST mirror the tools registered in mcp-server/server.ts — names, inputSchema and annotations. Headless demo: no _meta.ui (no widgets). build.mjs checks the names match.",
+  "tools": [
+    {
+      "name": "chess_new_game",
+      "title": "Start a new chess game",
+      "description": "Resets the board to the starting position and begins a fresh self-play game (you will play BOTH sides). Returns the starting report including White's legal moves. Call this exactly once at the start of a game.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "Start a new chess game",
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "chess_read_board",
+      "title": "Read the chess board",
+      "description": "Returns the current position: whose turn it is, the PGN so far, the full legal-move list in SAN, both sides' pieces, and the FEN. You normally do NOT need this — every chess_make_move response already includes the next side's legal moves. Call it only to recover if you have lost track of the position.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "Read the chess board",
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "chess_make_move",
+      "title": "Make the next chess move",
+      "description": "Plays one move for whichever side is to move (self-play: you alternate White and Black). `move` is one move in SAN (e.g. \"Nf3\", \"exd5\", \"O-O\") or UCI (e.g. \"e2e4\"). The response reports the new position AND the next side's legal moves — pick your next move from that list without calling chess_read_board. On an illegal move the error lists the legal moves; retry with one of them. When the game ends the response contains the final result and a game summary — report it to the user and stop.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "move": {
+            "type": "string",
+            "description": "One move in SAN (e.g. \"Nf3\") or UCI (e.g. \"e2e4\") for the side to move."
+          }
+        },
+        "required": ["move"],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "Make the next chess move",
+        "readOnlyHint": true
+      }
+    }
+  ]
+}

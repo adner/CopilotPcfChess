@@ -21,8 +21,16 @@ Consequences that override the `main`-demo facts below:
 - **Critical coupling on this branch:** `PUBLIC_BASE_URL` (mcp-server/.env) == the plugin manifest's
   `mcpServerUrl` base == the **anonymous-access** HTTPS devtunnel. Re-run `package:cowork` + re-upload
   the zip whenever the tunnel changes.
-- The `declarative-agent-sync` skill does **NOT** apply — Cowork discovers tools dynamically via
-  `tools/list`; there is no mcp-tools.json to sync. The PCF control, viewer sources (`src/mcp-app.ts`,
+- **Manifest is v1.28** (`manifestVersion: "1.28"` + `v1.28` schema — NOT `devPreview`). The v1.28
+  schema **requires** `agentConnectors[].toolSource.remoteMcpServer.mcpToolDescription.file`, so the
+  package ships **`cowork-plugin/toolDescription.json`** — a static tool declaration that MUST mirror
+  the tools in `mcp-server/server.ts` (this is the branch's one sync burden, analogous to the
+  declarative agent's `mcp-tools.json`). `build.mjs` fails the package if the tool names drift or a
+  tool lacks a `readOnlyHint`/`destructiveHint` annotation. Cowork also does runtime `tools/list`
+  discovery, but the static file is schema-mandatory. Headless → no `_meta.ui` in the file.
+  (Note: `packageName` is NOT allowed at the v1.28 root.)
+- The `declarative-agent-sync` skill does not apply, but the *idea* does: a tool change in `server.ts`
+  needs the matching edit to `toolDescription.json`. The PCF control, viewer sources (`src/mcp-app.ts`,
   `buildMoveCard`), web plane, and declarative agent stay in-tree but **unused**.
 - Human narrative (sideload steps, running the demo, reading the Credits report) → `cowork-plugin/README.md`.
 
